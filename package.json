@@ -8,10 +8,9 @@
     "react-scripts": "^5.0.1"
   },
   "scripts": {
-  "start": "npx react-scripts start",
-  "build": "npx react-scripts build",
-  "test": "npx react-scripts test",
-  "eject": "npx react-scripts eject"
+  "dev": "vite",
+  "build": "vite build",
+  "preview": "vite preview"
 },
   "browserslist": {
     "production": [
@@ -24,5 +23,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.5.2",
+    "vite": "^6.3.5"
   }
 }
