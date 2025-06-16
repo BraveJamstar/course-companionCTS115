@@ -10,16 +10,16 @@ export default function App() {
     setLoading(true);
     try {
       const res = await fetch(
-        'https://chatbot-backendcts115.onrender.com/ask',
+        'https://chatbot-backendcts115.onrender.com/ask',  // ← full backend URL
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ prompt }),
         }
       );
-      if (!res.ok) throw new Error(`Status ${res.status}`);
+      if (!res.ok) throw new Error(`Server responded with ${res.status}`);
       const data = await res.json();
-      setResponse(data.reply || 'No reply received');
+      setResponse(data.reply || 'No reply');
     } catch (err) {
       console.error('Fetch /ask failed:', err);
       setResponse('Error: Unable to reach the assistant.');
@@ -29,21 +29,13 @@ export default function App() {
   };
 
   return (
-    <main style={{ fontFamily: 'Arial, sans-serif', maxWidth: 700, margin: '2rem auto' }}>
+    <main>
       <h1>Course Companion</h1>
-      <textarea
-        value={prompt}
-        onChange={e => setPrompt(e.target.value)}
-        placeholder="Enter your question..."
-        rows={4}
-        style={{ width: '100%', padding: '0.5rem' }}
-      />
-      <button onClick={handleAsk} disabled={loading} style={{ marginTop: '0.5rem' }}>
+      <textarea value={prompt} onChange={e => setPrompt(e.target.value)} />
+      <button onClick={handleAsk} disabled={loading}>
         {loading ? 'Thinking…' : 'Ask GPT'}
       </button>
-      <pre id="response" style={{ marginTop: '1rem', background: '#f4f4f4', padding: '1rem' }}>
-        {response}
-      </pre>
+      <pre>{response}</pre>
     </main>
   );
 }
