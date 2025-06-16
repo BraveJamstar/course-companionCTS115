@@ -1,71 +1,58 @@
-import React, { useState } from "react";
-import "./App.css";
-
-const API_BASE_URL = "https://chatbot-backendcts115.onrender.com";
+import { useState } from "react";
 
 function App() {
   const [prompt, setPrompt] = useState("");
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleAsk = async () => {
+    if (!prompt) return;
     setLoading(true);
-    setError("");
     setResponse("");
 
     try {
-      const res = await fetch(`${API_BASE_URL}/ask`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
+      const res = await fetch(
+        "https://chatbot-backendcts115.onrender.com/ask",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ prompt })
+        }
+      );
 
       if (!res.ok) {
-        throw new Error(`HTTP error! Status: ${res.status}`);
+        throw new Error(`Server error ${res.status}`);
       }
 
       const data = await res.json();
-      if (data.reply) {
-        setResponse(data.reply);
-      } else {
-        setError("No reply received from assistant.");
-      }
-    } catch (err) {
-      console.error("Error submitting prompt:", err);
-      setError("Unable to reach the assistant.");
+      setResponse(data.reply || "No reply from assistant.");
+    } catch (error) {
+      console.error("❌ Frontend fetch error:", error);
+      setResponse("Error: Unable to reach the assistant.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="App">
+    <div style={{ fontFamily: "Arial, sans-serif", maxWidth: 800, margin: "0 auto", padding: 20 }}>
       <h1>Course Companion</h1>
-      <p>Information Systems Business Concepts</p>
-      <form onSubmit={handleSubmit}>
-        <textarea
-          rows="4"
-          cols="50"
-          value={prompt}
-          onChange={(e) => setPrompt(e.target.value)}
-          placeholder="Ask a question about MIS, DSS, ERP, or business systems..."
-        />
-        <br />
-        <button type="submit" disabled={loading || !prompt.trim()}>
-          {loading ? "Thinking..." : "Ask"}
-        </button>
-      </form>
-      {error && <div className="error">Error: {error}</div>}
-      {response && (
-        <div className="response">
-          <h2>Assistant's Response:</h2>
-          <p>{response}</p>
-        </div>
-      )}
+      <textarea
+        rows={4}
+        cols={50}
+        placeholder="Type your question..."
+        value={prompt}
+        onChange={(e) => setPrompt(e.target.value)}
+      />
+      <br />
+      <button onClick={handleAsk} disabled={loading}>
+        {loading ? "Thinking..." : "Ask GPT"}
+      </button>
+      <pre style={{ whiteSpace: "pre-wrap", background: "#f4f4f4", padding: 10 }}>
+        {response}
+      </pre>
     </div>
   );
 }
