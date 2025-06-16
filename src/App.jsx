@@ -15,11 +15,11 @@ export default function App() {
         body: JSON.stringify({ prompt }),
       });
       if (!res.ok) throw new Error(`Status ${res.status}`);
-      
+
       const data = await res.json();
-      setResponse(data.reply || "No reply field in JSON.");
+      setResponse(data.reply ?? 'No reply received');
     } catch (err) {
-      console.error('Error fetching /ask:', err);
+      console.error('Fetching /ask failed:', err);
       setResponse('Error: Unable to reach the assistant.');
     } finally {
       setLoading(false);
@@ -27,7 +27,7 @@ export default function App() {
   };
 
   return (
-    <div style={{ maxWidth: 700, margin: '2rem auto', fontFamily: 'Arial, sans-serif' }}>
+    <main style={{ fontFamily: 'Arial', maxWidth: 700, margin: '2rem auto' }}>
       <h1>Course Companion</h1>
       <textarea
         value={prompt}
@@ -36,13 +36,12 @@ export default function App() {
         rows={4}
         style={{ width: '100%', padding: '0.5rem' }}
       />
-      <br />
       <button onClick={handleAsk} disabled={loading} style={{ marginTop: '0.5rem' }}>
         {loading ? 'Thinking…' : 'Ask GPT'}
       </button>
-      <div id="response" style={{ marginTop: '1rem', whiteSpace: 'pre-wrap', background: '#f9f9f9', padding: '1rem', minHeight: '100px' }}>
+      <pre id="response" style={{ marginTop: '1rem', background: '#f4f4f4', padding: '1rem' }}>
         {response}
-      </div>
-    </div>
+      </pre>
+    </main>
   );
 }
