@@ -9,17 +9,19 @@ export default function App() {
     if (!prompt.trim()) return;
     setLoading(true);
     try {
-      const res = await fetch('https://chatbot-backendcts115.onrender.com/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
+      const res = await fetch(
+        'https://chatbot-backendcts115.onrender.com/ask',
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        }
+      );
       if (!res.ok) throw new Error(`Status ${res.status}`);
-
       const data = await res.json();
-      setResponse(data.reply ?? 'No reply received');
+      setResponse(data.reply || 'No reply received');
     } catch (err) {
-      console.error('Fetching /ask failed:', err);
+      console.error('Fetch /ask failed:', err);
       setResponse('Error: Unable to reach the assistant.');
     } finally {
       setLoading(false);
@@ -27,7 +29,7 @@ export default function App() {
   };
 
   return (
-    <main style={{ fontFamily: 'Arial', maxWidth: 700, margin: '2rem auto' }}>
+    <main style={{ fontFamily: 'Arial, sans-serif', maxWidth: 700, margin: '2rem auto' }}>
       <h1>Course Companion</h1>
       <textarea
         value={prompt}
