@@ -1,79 +1,48 @@
-// src/App.jsx
 import React, { useState } from 'react';
 
-const BACKEND_URL = 'https://chatbot-backendcts115.onrender.com'; // 🔧 Replace with your actual backend URL
-
-function App() {
+export default function App() {
   const [prompt, setPrompt] = useState('');
-  const [reply, setReply] = useState('');
+  const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  const handleSubmit = async () => {
-    if (!prompt.trim()) {
-      setError('Please enter a question.');
-      return;
-    }
+  const handleAsk = async () => {
+    if (!prompt.trim()) return;
     setLoading(true);
-    setError('');
-    setReply('');
-
     try {
-      const res = await fetch(`${BACKEND_URL}/ask`, {
+      const res = await fetch('https://chatbot-backendcts115.onrender.com/ask', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
-
       if (!res.ok) throw new Error(`Status ${res.status}`);
+      
       const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      if (!data.reply) throw new Error('No reply from assistant.');
-
-      setReply(data.reply);
+      setResponse(data.reply || "No reply field in JSON.");
     } catch (err) {
-      console.error('🔥 fetch error:', err);
-      setError(`Error: Unable to reach the assistant. (${err.message})`);
+      console.error('Error fetching /ask:', err);
+      setResponse('Error: Unable to reach the assistant.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: 600, margin: '2rem auto', fontFamily: 'Arial, sans-serif' }}>
+    <div style={{ maxWidth: 700, margin: '2rem auto', fontFamily: 'Arial, sans-serif' }}>
       <h1>Course Companion</h1>
       <textarea
         value={prompt}
         onChange={e => setPrompt(e.target.value)}
+        placeholder="Enter your question..."
         rows={4}
-        style={{ width: '100%', padding: 10 }}
-        placeholder="Ask a question..."
+        style={{ width: '100%', padding: '0.5rem' }}
       />
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        style={{
-          marginTop: 10,
-          padding: '10px 20px',
-          background: '#004080',
-          color: '#fff',
-          border: 'none',
-          borderRadius: 4,
-          cursor: 'pointer',
-        }}
-      >
+      <br />
+      <button onClick={handleAsk} disabled={loading} style={{ marginTop: '0.5rem' }}>
         {loading ? 'Thinking…' : 'Ask GPT'}
       </button>
-      {error && (
-        <p style={{ color: 'red', marginTop: 10 }}>{error}</p>
-      )}
-      {reply && (
-        <div style={{ marginTop: 20, padding: 15, background: '#f9f9f9', borderRadius: 4 }}>
-          <pre style={{ whiteSpace: 'pre-wrap' }}>{reply}</pre>
-        </div>
-      )}
+      <div id="response" style={{ marginTop: '1rem', whiteSpace: 'pre-wrap', background: '#f9f9f9', padding: '1rem', minHeight: '100px' }}>
+        {response}
+      </div>
     </div>
   );
 }
-
-export default App;
