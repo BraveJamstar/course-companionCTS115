@@ -1,3 +1,4 @@
+// src/App.jsx
 import React, { useState } from 'react';
 
 function App() {
@@ -6,59 +7,64 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleAsk = async () => {
-    setLoading(true);
+  const askAssistant = async () => {
+    if (!prompt.trim()) {
+      setError('Please enter a question.');
+      return;
+    }
     setError('');
+    setLoading(true);
     setResponse('');
 
     try {
-      const res = await fetch('https://chatbot-backendcts115.onrender.com/ask', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+      const res = await fetch(
+        'https://chatbot-backendcts115.onrender.com/ask', // ← your deployed backend URL
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        }
+      );
 
       const data = await res.json();
-
-      if (data.reply) {
+      if (data && data.reply) {
         setResponse(data.reply);
       } else {
-        setError('No response from assistant.');
+        setError('No reply received from assistant.');
       }
     } catch (err) {
-      console.error('Error:', err);
-      setError('Unable to reach the assistant.');
+      console.error('Fetch error:', err);
+      setError('Unable to reach the assistant. Try again later.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
-      <h1>Course Companion Chatbot</h1>
+    <div className="App" style={{ maxWidth: 700, margin: '2rem auto', padding: '1rem', fontFamily: 'Arial, sans-serif' }}>
+      <h1>Course Companion</h1>
       <textarea
-        rows="4"
-        cols="50"
-        placeholder="Ask a question..."
+        rows={4}
+        style={{ width: '100%' }}
         value={prompt}
-        onChange={(e) => setPrompt(e.target.value)}
-        style={{ width: '100%', padding: '0.5rem', fontSize: '1rem' }}
+        onChange={e => setPrompt(e.target.value)}
+        placeholder="Ask your question..."
       />
-      <br />
-      <button onClick={handleAsk} style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>
-        Ask
+      <button onClick={askAssistant} disabled={loading} style={{ marginTop: '0.5rem', padding: '0.5rem 1rem' }}>
+        {loading ? 'Thinking...' : 'Ask GPT'}
       </button>
-      <div style={{ marginTop: '1rem', whiteSpace: 'pre-wrap' }}>
-        {loading && <p>Loading...</p>}
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        {response && <p>{response}</p>}
-      </div>
+
+      {error && (
+        <div style={{ marginTop: '1rem', color: 'red' }}>
+          ⚠️ {error}
+        </div>
+      )}
+
+      {response && (
+        <div id="response" style={{ marginTop: '1.5rem', padding: '1rem', background: '#f9f9f9', borderRadius: '5px', whiteSpace: 'pre-wrap' }}>
+          {response}
+        </div>
+      )}
     </div>
   );
 }
