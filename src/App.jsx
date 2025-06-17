@@ -1,58 +1,64 @@
-import { useState } from "react";
+import React, { useState } from 'react';
 
 function App() {
-  const [prompt, setPrompt] = useState("");
-  const [response, setResponse] = useState("");
+  const [prompt, setPrompt] = useState('');
+  const [response, setResponse] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleAsk = async () => {
-    if (!prompt) return;
     setLoading(true);
-    setResponse("");
+    setError('');
+    setResponse('');
 
     try {
-      const res = await fetch(
-        "https://chatbot-backendcts115.onrender.com/ask",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ prompt })
-        }
-      );
+      const res = await fetch('https://chatbot-backendcts115.onrender.com/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
 
       if (!res.ok) {
-        throw new Error(`Server error ${res.status}`);
+        throw new Error(`HTTP error! status: ${res.status}`);
       }
 
       const data = await res.json();
-      setResponse(data.reply || "No reply from assistant.");
-    } catch (error) {
-      console.error("❌ Frontend fetch error:", error);
-      setResponse("Error: Unable to reach the assistant.");
+
+      if (data.reply) {
+        setResponse(data.reply);
+      } else {
+        setError('No response from assistant.');
+      }
+    } catch (err) {
+      console.error('Error:', err);
+      setError('Unable to reach the assistant.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ fontFamily: "Arial, sans-serif", maxWidth: 800, margin: "0 auto", padding: 20 }}>
-      <h1>Course Companion</h1>
+    <div style={{ padding: '2rem', fontFamily: 'Arial' }}>
+      <h1>Course Companion Chatbot</h1>
       <textarea
-        rows={4}
-        cols={50}
-        placeholder="Type your question..."
+        rows="4"
+        cols="50"
+        placeholder="Ask a question..."
         value={prompt}
         onChange={(e) => setPrompt(e.target.value)}
+        style={{ width: '100%', padding: '0.5rem', fontSize: '1rem' }}
       />
       <br />
-      <button onClick={handleAsk} disabled={loading}>
-        {loading ? "Thinking..." : "Ask GPT"}
+      <button onClick={handleAsk} style={{ marginTop: '1rem', padding: '0.5rem 1rem' }}>
+        Ask
       </button>
-      <pre style={{ whiteSpace: "pre-wrap", background: "#f4f4f4", padding: 10 }}>
-        {response}
-      </pre>
+      <div style={{ marginTop: '1rem', whiteSpace: 'pre-wrap' }}>
+        {loading && <p>Loading...</p>}
+        {error && <p style={{ color: 'red' }}>{error}</p>}
+        {response && <p>{response}</p>}
+      </div>
     </div>
   );
 }
