@@ -1,70 +1,54 @@
-// src/App.jsx
 import React, { useState } from 'react';
+import './App.css';
 
 function App() {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const askAssistant = async () => {
-    if (!prompt.trim()) {
-      setError('Please enter a question.');
-      return;
-    }
+  const handleAsk = async () => {
     setError('');
-    setLoading(true);
     setResponse('');
 
     try {
-      const res = await fetch(
-        'https://chatbot-backendcts115.onrender.com/ask', // ← your deployed backend URL
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt }),
-        }
-      );
+      const res = await fetch('https://chatbot-backendcts115.onrender.com/ask', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!res.ok) {
+        throw new Error(`HTTP error ${res.status}`);
+      }
 
       const data = await res.json();
-      if (data && data.reply) {
-        setResponse(data.reply);
-      } else {
-        setError('No reply received from assistant.');
-      }
+      setResponse(data.reply || 'No response from assistant.');
     } catch (err) {
-      console.error('Fetch error:', err);
-      setError('Unable to reach the assistant. Try again later.');
-    } finally {
-      setLoading(false);
+      console.error('Error fetching response:', err);
+      setError('Error: Unable to reach the assistant.');
     }
   };
 
   return (
-    <div className="App" style={{ maxWidth: 700, margin: '2rem auto', padding: '1rem', fontFamily: 'Arial, sans-serif' }}>
-      <h1>Course Companion</h1>
+    <div className="App">
+      <h1>Information Systems Business Concepts</h1>
+      <p>Use this assistant to ask academic questions about MIS, DSS, ERP, analytics, and business systems.</p>
       <textarea
-        rows={4}
-        style={{ width: '100%' }}
         value={prompt}
-        onChange={e => setPrompt(e.target.value)}
-        placeholder="Ask your question..."
+        onChange={(e) => setPrompt(e.target.value)}
+        rows={5}
+        cols={60}
+        placeholder="Enter your question here..."
       />
-      <button onClick={askAssistant} disabled={loading} style={{ marginTop: '0.5rem', padding: '0.5rem 1rem' }}>
-        {loading ? 'Thinking...' : 'Ask GPT'}
-      </button>
-
-      {error && (
-        <div style={{ marginTop: '1rem', color: 'red' }}>
-          ⚠️ {error}
-        </div>
-      )}
-
-      {response && (
-        <div id="response" style={{ marginTop: '1.5rem', padding: '1rem', background: '#f9f9f9', borderRadius: '5px', whiteSpace: 'pre-wrap' }}>
-          {response}
-        </div>
-      )}
+      <br />
+      <button onClick={handleAsk}>Ask GPT</button>
+      <p style={{ color: 'red' }}>
+        ⚠️ This assistant does not support graded assignments, exams, or quizzes. Use for study and learning only.
+      </p>
+      {error && <div style={{ color: 'red' }}>{error}</div>}
+      {response && <div style={{ marginTop: '1em', whiteSpace: 'pre-wrap' }}>{response}</div>}
     </div>
   );
 }
