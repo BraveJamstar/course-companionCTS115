@@ -6,29 +6,25 @@ function App() {
   const [response, setResponse] = useState("");
 
   const handleAsk = async () => {
-    if (!prompt.trim()) {
-      setResponse("Please enter a question.");
-      return;
-    }
+  console.log("Calling backend at:", "https://chatbot-backendcts115.onrender.com/ask");
+  setResponse(''); // Clear previous
+  try {
+    const res = await fetch('https://chatbot-backendcts115.onrender.com/ask', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ prompt }),
+    });
 
-    try {
-      setResponse("Loading...");
-      const res = await fetch("https://chatbot-backendcts115.onrender.com/ask", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ prompt }),
-      });
+    const data = await res.json();
+    setResponse(data.reply);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    setResponse("⚠️ Error: Unable to reach the assistant.");
+  }
+};
 
-      const data = await res.json(); // Parse the response
-      console.log("Backend response:", data); // Debug log
-      setResponse(data.reply || "No reply received.");
-    } catch (err) {
-      console.error("Error reaching assistant:", err);
-      setResponse("Error: Unable to reach the assistant.");
-    }
-  };
 
   return (
     <div className="App">
