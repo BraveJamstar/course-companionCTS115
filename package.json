@@ -1,35 +1,21 @@
 {
-  "name": "frontend-fixed",
-  "version": "0.1.0",
-  "private": true,
-  "dependencies": {
-    "body-parser": "^2.2.0",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "node-fetch": "^3.3.2",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1"
-  },
+  "name": "course-companion-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for CTS 115 Course Companion chatbot",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview --port 8080"
+    "start": "vite preview --port 8080"
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@vitejs/plugin-react": "^4.5.2",
-    "vite": "^6.3.5"
+    "vite": "^4.0.0",
+    "@vitejs/plugin-react": "^4.0.0"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
