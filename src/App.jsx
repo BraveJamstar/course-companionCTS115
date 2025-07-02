@@ -15,13 +15,11 @@ function App() {
     setResponse('');
 
     try {
-      const res = await fetch(`${import.meta.env.VITE_BACKEND_URL}/ask`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt }),
-      });
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/ask`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ question }),
+});
 
       if (!res.ok) {
         throw new Error('Failed to get response from server');
