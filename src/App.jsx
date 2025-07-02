@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import './App.css';
 
+console.log("Backend URL (from .env):", import.meta.env.VITE_BACKEND_URL);
+
 function App() {
   const [prompt, setPrompt] = useState('');
   const [response, setResponse] = useState('');
