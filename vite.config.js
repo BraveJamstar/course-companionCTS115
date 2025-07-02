@@ -1,22 +1,17 @@
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
-import path from 'path';
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
-  // Load environment variables based on the current mode (e.g., development or production)
-  const env = loadEnv(mode, process.cwd(), '');
+  // Load .env file based on the current mode (e.g., development, production)
+  const env = loadEnv(mode, process.cwd());
 
   return {
     plugins: [react()],
-    resolve: {
-      alias: {
-        '@': path.resolve(__dirname, 'src'),
-      },
-    },
     define: {
-      // Make VITE_* environment variables available in the frontend
-      'process.env': env,
-    },
+      // Makes VITE_ variables available via import.meta.env
+      'import.meta.env': {
+        VITE_BACKEND_URL: JSON.stringify(env.VITE_BACKEND_URL)
+      }
+    }
   };
 });
