@@ -1,7 +1,7 @@
 {
   "name": "course-companioncts115",
   "version": "1.0.0",
-  "description": "This is a clean app ready for deployment.",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,6 +9,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "description": "",
   "dependencies": {
     "express": "^5.1.0",
     "node-fetch": "^3.3.2"
