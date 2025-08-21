@@ -1,3 +1,3 @@
 # Course Companion CTS115
 
-This is a clean React app ready for deployment.
+This is a clean node app ready for deployment.
