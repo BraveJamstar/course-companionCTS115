@@ -2,15 +2,118 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Course Companion – IS Business Concepts</title>
+  <title>Course Companion</title>
   <style>
-    body { font-family: Arial, sans-serif; max-width: 700px; margin: 2rem auto; background: #f4f4f4; padding: 2rem; border-radius: 10px; }
-    header { text-align: center; margin-bottom: 20px; }
-    header svg { max-width: 150px; height: auto; margin-bottom: 10px; }
-    textarea { width: 100%; height: 100px; }
-    button { padding: 10px 15px; background: #004080; color: white; border: none; border-radius: 5px; cursor: pointer; margin-top: 10px; }
-    #response { margin-top: 20px; background: white; padding: 1rem; border-radius: 5px; white-space: pre-wrap; }
-    .warning { font-size: 0.9em; color: #800000; margin-top: 1rem; }
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 2rem auto;
+      background: #f4f4f4;
+      padding: 2rem;
+      border-radius: 10px;
+      position: relative;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      resize: vertical;
+    }
+    button {
+      padding: 10px 15px;
+      background: #004080;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      font-size: 1rem;
+      transition: background 0.2s ease;
+    }
+    button:hover {
+      background: #003060;
+    }
+    #response {
+      margin-top: 20px;
+      background: white;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .warning {
+      font-size: 0.9em;
+      color: #800000;
+      margin-top: 1rem;
+    }
+
+    /* Modal overlay */
+    #classModal {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      animation: fadeIn 0.3s ease;
+    }
+
+    /* Modal content card */
+    #classModal .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 12px;
+      text-align: center;
+      width: 320px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+      animation: slideUp 0.3s ease;
+    }
+
+    #classModal h2 {
+      margin-top: 0;
+      color: #004080;
+    }
+
+    #classModal select {
+      width: 100%;
+      padding: 10px;
+      margin: 15px 0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    #classModal button {
+      width: 100%;
+      padding: 12px;
+      font-size: 1rem;
+      background: #004080;
+      color: white;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    #classModal button:hover {
+      background: #003060;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { transform: translateY(30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -66,37 +169,93 @@
                         <path d="M29.4274 6.70967H28.4022V7.10783H22.4244V5.08918H28.4022V5.50265H29.4274V4.05618H21.4005V8.14222H29.4274V6.70967Z" fill="#055DA7"></path></svg>
 
     <h1>Course Companion</h1>
-    <h2>Information Systems Business Concepts</h2>
+    <h2>Information Technology Concepts</h2>
   </header>
 
+
   <p>Use this assistant to ask academic questions about MIS, DSS, ERP, analytics, and business systems.</p>
-  <textarea id="prompt" maxlength="300" placeholder="Enter your course-related question (max 300 characters)..."></textarea><br/>
-  <button onclick="ask()">Ask GPT</button>
+  <textarea id="prompt" maxlength="300" placeholder="What is MIS?"></textarea><br/>
+  <button id="submit">Ask GPT</button>
   <div class="warning">⚠️ This assistant does not support graded assignments, exams, or quizzes. Use for study and learning only.</div>
   <div id="response"></div>
 
-  <script>
-    async function ask() {
-      const prompt = document.getElementById("prompt").value.trim();
-      const resBox = document.getElementById("response");
-      if (prompt.length === 0) {
-        resBox.innerText = "Please enter a question.";
-        return;
-      }
 
-      resBox.innerText = "Thinking...";
-      try {
-        const response = await fetch("/api/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ prompt })
-        });
-        const data = await response.json();
-        resBox.innerText = data.reply || "No response.";
-      } catch (error) {
-        resBox.innerText = "Error: Unable to reach the assistant.";
-      }
-    }
-  </script>
+  <!-- Popup modal for selecting class -->
+  <div id="classModal">
+    <div class="modal-content">
+      <h2>Select Your Class</h2>
+      <select id="classSelect">
+        <option value="" disabled selected>-- choose a class --</option>
+        <option value="business-concepts">IS Business Concepts</option>
+        <option value="data-science">Data Science</option>
+        <option value="marketing">Marketing Principles</option>
+        <option value="finance">Corporate Finance</option>
+      </select>
+      <button id="confirmClass">Confirm</button>
+    </div>
+  </div>
+
+<script>
+let selectedModel = null;
+
+// Function to handle asking the AI
+async function askAI() {
+  if (!selectedModel) {
+    alert("Please select a class first.");
+    return;
+  }
+
+  const promptEl = document.getElementById("prompt");
+  const responseEl = document.getElementById("response");
+  const prompt = promptEl.value.trim();
+
+  if (!prompt) {
+    alert("Please enter a question.");
+    return;
+  }
+
+  // Show "Thinking..." message
+  responseEl.textContent = "Thinking...";
+
+  try {
+    const res = await fetch("/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ prompt, model: selectedModel })
+    });
+
+    const data = await res.json();
+    responseEl.textContent = data.reply || `Error: ${data.error || "No response"}`;
+  } catch (err) {
+    responseEl.textContent = "Error connecting to server.";
+  }
+
+  // Optionally clear the prompt after sending
+  // promptEl.value = "";
+}
+
+// Confirm class selection
+document.getElementById("confirmClass").addEventListener("click", () => {
+  const dropdown = document.getElementById("classSelect");
+  const value = dropdown.value;
+  if (!value) {
+    alert("Please select a class.");
+    return;
+  }
+  selectedModel = value;
+  document.getElementById("classModal").style.display = "none";
+});
+
+// Ask button click
+document.getElementById("submit").addEventListener("click", askAI);
+
+// Press Enter to ask
+document.getElementById("prompt").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault(); // prevent newline
+    askAI();
+  }
+});
+</script>
 </body>
 </html>

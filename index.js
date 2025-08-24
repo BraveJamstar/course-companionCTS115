@@ -15,13 +15,12 @@ app.use(express.json());
 // Serve static files (so index.html loads at /)
 app.use(express.static(path.join(__dirname, "public")));
 
-// Middleware to restrict API access only to requests from index.html
+// Middleware: only allow API calls from index.html served by this server
 app.use("/api", (req, res, next) => {
   const allowedOrigin = `http://localhost:${process.env.PORT || 3000}`;
   const origin = req.get("origin");
   const referer = req.get("referer");
 
-  // Only allow if request came from our own index.html
   if (
     (origin && origin === allowedOrigin) ||
     (referer && referer.startsWith(allowedOrigin + "/index.html"))
@@ -29,12 +28,14 @@ app.use("/api", (req, res, next) => {
     return next();
   }
 
-  return res.status(403).json({ error: "Forbidden: API can only be called from index.html" });
+  return res
+    .status(403)
+    .json({ error: "Forbidden"});
 });
 
 // API endpoint
 app.post("/api/ask", async (req, res) => {
-  const { prompt } = req.body;
+  const { prompt, model } = req.body;
 
   if (!prompt) {
     return res.status(400).json({ error: "Missing 'prompt' in request body" });
@@ -45,14 +46,14 @@ app.post("/api/ask", async (req, res) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: process.env.MODEL,
+        model: model || process.env.MODEL, // use dropdown model or fallback
         prompt
       })
     });
 
     const textStream = await ollamaRes.text();
-
     let reply = "";
+
     textStream.split("\n").forEach(line => {
       if (line.trim()) {
         try {
