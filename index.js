@@ -16,23 +16,21 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 // Middleware: only allow API calls from index.html served by this server
+// Middleware: only allow requests from the same host
 app.use("/api", (req, res, next) => {
-  const allowedOrigin = `http://localhost:${process.env.PORT || 3000}`;
   const origin = req.get("origin");
   const referer = req.get("referer");
-
+  const PORT = process.env.PORT || 3000; // fallback to 3000
+  // Allow localhost, 127.0.0.1, or same host:PORT
   if (
-    (origin && origin === allowedOrigin) ||
-    (referer && referer.startsWith(allowedOrigin + "/index.html"))
+    origin?.includes(`:${PORT}`) ||
+    referer?.includes(`:${PORT}/index.html`)
   ) {
     return next();
   }
 
-  return res
-    .status(403)
-    .json({ error: "Forbidden"});
+  return res.status(403).json({ error: "Forbidden" });
 });
-
 // API endpoint
 app.post("/api/ask", async (req, res) => {
   const { prompt, model } = req.body;
@@ -75,7 +73,8 @@ app.post("/api/ask", async (req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log(`✅ Server + frontend running at http://localhost:${PORT}`)
-);
+const PORT = process.env.PORT || 3000; // fallback to 3000
+const HOST = process.env.ServerIP || "localhost"; // fallback to localhost
+app.listen(PORT, HOST, () => {
+  console.log(`✅ Server + frontend running at http://${HOST}:${PORT}`);
+});
