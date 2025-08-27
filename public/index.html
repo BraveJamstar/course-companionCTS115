@@ -28,6 +28,12 @@
       border: 1px solid #ccc;
       resize: vertical;
     }
+    textarea,
+      button {
+        width: 100%;
+        box-sizing: border-box; /* include padding/border in width calculation */
+    }
+
     button {
       padding: 10px 15px;
       background: #004080;
@@ -39,6 +45,7 @@
       font-size: 1rem;
       transition: background 0.2s ease;
     }
+
     button:hover {
       background: #003060;
     }
