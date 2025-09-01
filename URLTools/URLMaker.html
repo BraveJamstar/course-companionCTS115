@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Course Companion URL Maker</title>
+	<style>
+		body { font-family: Arial, sans-serif; max-width: 500px; margin: 2rem auto; background: #f4f4f4; padding: 2rem; border-radius: 10px; }
+		label { display: block; margin-top: 1.2em; font-weight: bold; }
+		select, input[type=text], textarea { width: 100%; padding: 0.5em; border-radius: 6px; border: 1px solid #ccc; margin-top: 0.3em; }
+		textarea { min-height: 60px; }
+		button { margin-top: 1.2em; padding: 0.7em 1.5em; background: #004080; color: white; border: none; border-radius: 6px; font-size: 1em; cursor: pointer; }
+		button:hover { background: #003060; }
+		#output { margin-top: 1.5em; background: #fff; padding: 1em; border-radius: 6px; word-break: break-all; font-size: 0.98em; }
+		.desc { font-size: 0.95em; color: #444; margin-bottom: 1em; }
+	</style>
+</head>
+<body>
+	<h2>Course Companion URL Maker</h2>
+	<div class="desc">Generate a direct link with class and (optional) system prompt.<br>System prompt will be base64-encoded for security.</div>
+	<form id="urlForm" autocomplete="off">
+		<label for="class">Class</label>
+		<select id="class" required>
+			<option value="" disabled selected>-- choose a class --</option>
+			<option value="business-concepts">IS Business Concepts</option>
+			<option value="data-science">Data Science</option>
+			<option value="marketing">Marketing Principles</option>
+			<option value="finance">Corporate Finance</option>
+		</select>
+
+		<label for="system">System Prompt (optional)</label>
+		<textarea id="system" placeholder="e.g. You are a helpful tutor."></textarea>
+
+		<label for="base">Base URL</label>
+		<input type="text" id="base" value="http://localhost:3000/" required />
+
+		<button type="submit">Generate URL</button>
+	</form>
+	<div id="output"></div>
+
+	<script>
+		function toBase64(str) {
+			// btoa only works with ASCII, so encodeURIComponent for unicode
+			try {
+				return btoa(unescape(encodeURIComponent(str)));
+			} catch {
+				return '';
+			}
+		}
+
+		document.getElementById('urlForm').addEventListener('submit', function(e) {
+			e.preventDefault();
+			const base = document.getElementById('base').value.trim().replace(/\/$/, '');
+			const cls = document.getElementById('class').value;
+			const sys = document.getElementById('system').value.trim();
+			if (!cls) {
+				document.getElementById('output').textContent = 'Please select a class.';
+				return;
+			}
+			let url = `${base}/?class=${encodeURIComponent(cls)}`;
+			if (sys) {
+				url += `&system=${encodeURIComponent(toBase64(sys))}`;
+			}
+			document.getElementById('output').innerHTML = `<strong>URL:</strong><br><a href="${url}" target="_blank">${url}</a>`;
+		});
+	</script>
+</body>
+</html>

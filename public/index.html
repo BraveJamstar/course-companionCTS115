@@ -214,6 +214,36 @@
 
 <script>
 let selectedModel = null;
+let systemPrompt = null;
+
+// Parse URL parameters
+function getUrlParams() {
+  const params = {};
+  window.location.search.substring(1).split("&").forEach(pair => {
+    if (!pair) return;
+    const [key, value] = pair.split("=");
+    params[decodeURIComponent(key)] = decodeURIComponent(value || "");
+  });
+  return params;
+}
+
+// On page load, check for class and system in URL
+window.addEventListener("DOMContentLoaded", () => {
+  const params = getUrlParams();
+  if (params.class) {
+    selectedModel = params.class;
+    document.getElementById("classModal").style.display = "none";
+  }
+  if (params.system) {
+    try {
+      // Decode base64 system prompt
+      systemPrompt = atob(params.system);
+    } catch (e) {
+      systemPrompt = null;
+      console.warn("Invalid base64 for system prompt in URL.");
+    }
+  }
+});
 
 // Function to handle asking the AI
 async function askAI() {
@@ -224,16 +254,20 @@ async function askAI() {
 
   const promptEl = document.getElementById("prompt");
   const responseEl = document.getElementById("response");
-  const prompt = promptEl.value.trim();
+  let prompt = promptEl.value.trim();
 
   if (!prompt) {
     alert("Please enter a question.");
     return;
   }
 
+  // Prepend system prompt if present
+  if (systemPrompt) {
+    prompt = `${systemPrompt}\n${prompt}`;
+  }
+
   // Show "Thinking..." message
   responseEl.textContent = "Thinking...";
-
 
   try {
     const res = await fetch("/api/ask", {
