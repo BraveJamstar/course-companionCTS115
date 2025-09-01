@@ -1,5 +1,5 @@
 import express from "express";
-import fetch from "node-fetch";
+// Use native fetch (Node.js v18+)
 import path from "path";
 import { fileURLToPath } from "url";
 import dotenv from "dotenv";
@@ -31,6 +31,7 @@ app.use("/api", (req, res, next) => {
 
   return res.status(403).json({ error: "Forbidden" });
 });
+
 // API endpoint
 app.post("/api/ask", async (req, res) => {
   const { prompt, model } = req.body;
@@ -44,32 +45,70 @@ app.post("/api/ask", async (req, res) => {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: model || process.env.MODEL, // use dropdown model or fallback
-        prompt
-      })
+        model: model || process.env.MODEL,
+        prompt,
+        stream: true,
+      }),
     });
 
-    const textStream = await ollamaRes.text();
-    let reply = "";
-
-    textStream.split("\n").forEach(line => {
-      if (line.trim()) {
-        try {
-          const json = JSON.parse(line);
-          if (json.response) reply += json.response;
-          if (json.content) reply += json.content;
-        } catch {}
-      }
-    });
-
-    if (!reply) {
-      return res.status(500).json({ error: "No reply received from Ollama" });
+    if (!ollamaRes.ok) {
+      const errorText = await ollamaRes.text();
+      console.error("Ollama error:", ollamaRes.status, errorText);
+      return res.status(502).json({ error: `Ollama error: ${ollamaRes.status} ${errorText}` });
     }
 
-    res.json({ reply });
+    // Set headers so client knows this is a stream
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "no-cache");
+    res.setHeader("Connection", "keep-alive");
+    res.flushHeaders?.();
+
+    const reader = ollamaRes.body.getReader();
+    const decoder = new TextDecoder();
+    let received = false;
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (value) received = true;
+
+      const chunk = decoder.decode(value, { stream: true });
+
+      // Ollama sends JSON lines — parse each line separately
+      chunk.split("\n").forEach((line) => {
+        if (!line.trim()) return;
+        try {
+          const json = JSON.parse(line);
+          if (json.response) {
+            res.write(json.response);
+          }
+          if (json.content) {
+            res.write(json.content);
+          }
+        } catch (e) {
+          // ignore bad lines
+        }
+      });
+
+      // flush partial data
+      res.flush?.();
+    }
+
+    if (!received) {
+      console.warn("No data received from Ollama.");
+      if (!res.headersSent) {
+        return res.status(204).end();
+      }
+    }
+
+    res.end();
   } catch (err) {
     console.error("Server error:", err);
-    res.status(500).json({ error: err.message });
+    if (!res.headersSent) {
+      res.status(500).json({ error: err.message });
+    } else {
+      res.end();
+    }
   }
 });
 

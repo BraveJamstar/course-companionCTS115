@@ -234,6 +234,7 @@ async function askAI() {
   // Show "Thinking..." message
   responseEl.textContent = "Thinking...";
 
+
   try {
     const res = await fetch("/api/ask", {
       method: "POST",
@@ -241,8 +242,26 @@ async function askAI() {
       body: JSON.stringify({ prompt, model: selectedModel })
     });
 
-    const data = await res.json();
-    responseEl.textContent = data.reply || `Error: ${data.error || "No response"}`;
+    if (!res.body || !window.ReadableStream) {
+      // fallback: not streaming capable
+      const data = await res.json();
+      responseEl.textContent = data.reply || `Error: ${data.error || "No response"}`;
+      return;
+    }
+
+    // Streaming response
+    responseEl.textContent = "";
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let done = false;
+    while (!done) {
+      const { value, done: streamDone } = await reader.read();
+      if (value) {
+        responseEl.textContent += decoder.decode(value, { stream: true });
+        responseEl.scrollTop = responseEl.scrollHeight;
+      }
+      done = streamDone;
+    }
   } catch (err) {
     responseEl.textContent = "Error connecting to server.";
   }
