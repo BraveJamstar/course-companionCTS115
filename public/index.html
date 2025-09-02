@@ -47,6 +47,11 @@
       margin-top: 0.75rem;
       font-size: 1rem;
       transition: background 0.2s ease;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     button:hover {
@@ -131,6 +136,36 @@
       from { transform: translateY(30px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
+    .spinner {
+      display: inline-block;
+      width: 22px;
+      height: 22px;
+      vertical-align: middle;
+      margin: 0;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      100% { transform: rotate(360deg); }
+    }
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .loading #submit-text {
+      visibility: hidden;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .loading .spinner {
+      display: inline-block;
+      position: static;
+      margin: 0;
+    }
+    .spinner {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -192,7 +227,12 @@
 
   <p>Use this assistant to ask academic questions about MIS, DSS, ERP, analytics, and business systems.</p>
   <textarea id="prompt" maxlength="300" placeholder="What is MIS?"></textarea><br/>
-  <button id="submit">Ask GPT</button>
+  <button id="submit">
+    <span id="submit-text">Ask GPT</span>
+    <svg class="spinner" viewBox="0 0 50 50">
+      <circle cx="25" cy="25" r="20" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-dasharray="31.4 31.4" stroke-dashoffset="0"/>
+    </svg>
+  </button>
   <div class="warning">⚠️ This assistant does not support graded assignments, exams, or quizzes. Use for study and learning only.</div>
   <div id="response"></div>
 
@@ -254,12 +294,18 @@ async function askAI() {
 
   const promptEl = document.getElementById("prompt");
   const responseEl = document.getElementById("response");
+  const submitBtn = document.getElementById("submit");
   let prompt = promptEl.value.trim();
 
   if (!prompt) {
     alert("Please enter a question.");
     return;
   }
+
+  // Show loading spinner on button and disable it
+  submitBtn.classList.add("loading");
+  submitBtn.disabled = true;
+  promptEl.disabled = true;
 
   // Prepend system prompt if present
   if (systemPrompt) {
@@ -280,6 +326,9 @@ async function askAI() {
       // fallback: not streaming capable
       const data = await res.json();
       responseEl.textContent = data.reply || `Error: ${data.error || "No response"}`;
+      submitBtn.classList.remove("loading");
+      submitBtn.disabled = false;
+      promptEl.disabled = false;
       return;
     }
 
@@ -300,6 +349,10 @@ async function askAI() {
     responseEl.textContent = "Error connecting to server.";
   }
 
+  // Hide loading spinner on button and enable it
+  submitBtn.classList.remove("loading");
+  submitBtn.disabled = false;
+  promptEl.disabled = false;
   // Optionally clear the prompt after sending
   // promptEl.value = "";
 }
@@ -317,11 +370,19 @@ document.getElementById("confirmClass").addEventListener("click", () => {
 });
 
 // Ask button click
-document.getElementById("submit").addEventListener("click", askAI);
+document.getElementById("submit").addEventListener("click", () => {
+  const submitBtn = document.getElementById("submit");
+  if (!submitBtn.disabled) askAI();
+});
 
 // Press Enter to ask
 document.getElementById("prompt").addEventListener("keydown", (e) => {
+  const submitBtn = document.getElementById("submit");
   if (e.key === "Enter" && !e.shiftKey) {
+    if (submitBtn.disabled) {
+      e.preventDefault();
+      return;
+    }
     e.preventDefault(); // prevent newline
     askAI();
   }
